@@ -1,4 +1,3 @@
-
 /**
  * Function signature for callbacks registered for receiving events on a channel.
  *
@@ -13,6 +12,11 @@
  * };
  */
 export type EventCallback<TEvent> = (event: TEvent) => void;
+
+/**
+ * Constant representing the wild card channel where ALL events get broadcast to.
+ */
+export const WildCardName = '*';
 
 /**
  * Subscription object returned when a callback is subscribed to an EventHub channel.
@@ -194,12 +198,15 @@ export class EventHub {
 
   /**
    * Creates a new EventHub instance.
-   * 
+   *
    * @description
-   * The constructor initializes an empty channels object. Channels are created dynamically
-   * as they are subscribed to or published to.
+   * The constructor initializes a wildcard channel object.
+   * Channels are created dynamically as they are subscribed to or published to.
    */
-  constructor() {}
+  constructor() {
+    // Create the Wildcard Channel
+    this._channels[WildCardName] = new Channel<any>(WildCardName);
+  }
 
   /**
    * Retrieves all channels currently subscribed to the event hub.
@@ -238,6 +245,9 @@ export class EventHub {
           this._channels[channel] = new Channel<TEvent>(channel);
       }
       this._channels[channel].publish(data);
+
+      // also publish to the wildcard channel
+      this._channels[WildCardName].publish(data);
   }
 
   /**
