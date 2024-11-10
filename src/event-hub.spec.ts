@@ -1,16 +1,4 @@
-import { Channel,Event, EventHub } from './event-hub';
-
-
-describe('[Event]: fields', () => {
-  it('Should have 2 fields - channel and data', () => {
-    const data: Event = {
-      channel: 'channel',
-      data: 'data'
-    };
-    expect(data).toHaveProperty('channel');
-    expect(data).toHaveProperty('data');
-  })
-});
+import { Channel, EventHub } from './event-hub';
 
 describe('[Channel] ', () => {
   const channel = new Channel<boolean>('test');

@@ -8,6 +8,7 @@ import tsParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
 import importsPlugin from 'eslint-plugin-import';
 import sortImportsPlugin from 'eslint-plugin-simple-import-sort';
+import tsdocPlugin from 'eslint-plugin-tsdoc';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
@@ -23,6 +24,7 @@ export default [
       import: importsPlugin,
       'unused-imports': unusedImportsPlugin,
       'simple-import-sort': sortImportsPlugin,
+      'tsdoc-import': tsdocPlugin,
     },
     languageOptions: {
       globals: {

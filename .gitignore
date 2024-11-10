@@ -18,6 +18,7 @@
 # project
 .idea
 dist
+docs
 coverage
 act
 .env.local

@@ -1,3 +1,3 @@
-import { EventHub } from './event-hub';
+import {Channel, EventCallback, EventHub, Subscription } from './event-hub';
 
-export { EventHub };
+export { Channel, EventCallback, EventHub, Subscription };
