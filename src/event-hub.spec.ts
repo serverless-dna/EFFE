@@ -1,4 +1,4 @@
-import { Channel, EventHub } from './event-hub';
+import { Channel, EventHub, WildCardName } from './event-hub';
 
 describe('[Channel] ', () => {
   const channel = new Channel<boolean>('test');
@@ -56,14 +56,14 @@ describe('[EventHub]: subscribe', () => {
       eventData = data;
       publishCount++;
     });
-    expect(Object.keys(eventHub.channels).length).toBe(1);
+    expect(Object.keys(eventHub.channels).length).toBe(2);
   });
 
   it('Should not add another channel when I subscribe to the same channel', () => {
     eventHub.subscribe<boolean>('test', (data: boolean) => {
       eventData = data;
     });
-    expect(Object.keys(eventHub.channels).length).toBe(1);
+    expect(Object.keys(eventHub.channels).length).toBe(2);
   });
 
   it('Should add another channel when I subscribe to a unique name', () => {
@@ -71,7 +71,7 @@ describe('[EventHub]: subscribe', () => {
       eventData = data;
       publishCount++;
     });
-    expect(Object.keys(eventHub.channels).length).toBe(2);
+    expect(Object.keys(eventHub.channels).length).toBe(3);
   });
 
   it('Should call the callback when I publish an event', () => {
@@ -91,9 +91,31 @@ describe('[EventHub]: subscribe', () => {
     expect(sub).toHaveProperty('unsubscribe');
 
     const channels = eventHub.channels;
-    expect(Object.keys(channels).length).toBe(3);
+    expect(Object.keys(channels).length).toBe(4);
     sub.unsubscribe();
-    expect(Object.keys(channels).length).toBe(3);
+    expect(Object.keys(channels).length).toBe(4);
+  });
+});
+
+describe('[EventHub]: Wildcard Subscribe', () => {
+  const eventHub = new EventHub();
+  let eventData: string = '';
+  it('Should add my callback to the channel when I subscribe', () => {
+    eventHub.subscribe<string>('*', (data: string) => {
+      eventData = data;
+    });
+    expect(Object.keys(eventHub.channels).length).toBe(1);
+    expect(Object.keys(eventHub.channels[WildCardName].callbacks).length).toBe(1);
+  });
+
+  it('Should call the callback when I publish an event', () => {
+    eventHub.publish<string>('test', 'this is a test');
+    expect(eventData).toBe('this is a test');
+  });
+
+  it('Should call the callback when I publish an event no matter the channel published to', () => {
+    eventHub.publish<string>('another', 'this is another test');
+    expect(eventData).toBe('this is another test');
   });
 });
 
