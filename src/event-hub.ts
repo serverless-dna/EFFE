@@ -1,29 +1,59 @@
 /**
+ * Represents a message that can be published through the EventHub system.
+ *
+ * @interface EventMessage
+ * @template T The type of data contained in the message
+ *
+ * @property {string} channel - The name of the channel this message will be published to
+ * @property {T} data - The payload/content of the message
+ *
+ * @example
+ * // Message with string data
+ * const stringMessage: EventMessage<string> = {
+ *   channel: "notifications",
+ *   data: "Hello World"
+ * };
+ *
+ * // Message with custom type
+ * interface UserData {
+ *   id: number;
+ *   name: string;
+ * }
+ * const userMessage: EventMessage<UserData> = {
+ *   channel: "users",
+ *   data: { id: 1, name: "John" }
+ * };
+ */
+export interface EventMessage<T> {
+  channel: string;
+  data: T;
+}
+
+/**
  * Function signature for callbacks registered for receiving events on a channel.
  *
- * @template TEvent The type of event that this callback handles.
+ * @template TData The type of data contained in the event message.
  * @callback EventCallback
- * @param {TEvent} event - The event that was published on the channel.
+ * @param {EventMessage<TData>} event - The event message that was published on the channel.
  * @returns {void}
  *
  * @example
  * const callback: EventCallback<string> = (message) => {
- *   console.log(`Received message: ${message}`);
+ *   console.log(`Received message on channel ${message.channel}: ${message.data}`);
  * };
  */
-export type EventCallback<TEvent> = (event: TEvent) => void;
+export type EventCallback<TData> = (data: EventMessage<TData>) => void;
 
 /**
  * Constant representing the wild card channel where ALL events get broadcast to.
  */
-export const WildCardName = '*';
+export const WildCardChannel = '*';
 
 /**
  * Subscription object returned when a callback is subscribed to an EventHub channel.
  * It contains the unsubscribe function to de-register a callback from the EventHub channel
  * and the unique identifier for this subscription.
  *
- * @typedef {Object} Subscription
  * @property {() => void} unsubscribe - Function to unsubscribe the callback from the channel.
  * @property {number} id - Unique identifier for this subscription.
  *
@@ -32,28 +62,27 @@ export const WildCardName = '*';
  * // Later, to unsubscribe:
  * subscription.unsubscribe();
  */
-export type Subscription = {
-  unsubscribe(): void;
+export interface Subscription {
+  unsubscribe: () => void;
   id: number;
-};
+}
 
 /**
  * Represents a list of callbacks subscribed to a channel, indexed by their subscription IDs.
  *
- * @template TEvent The type of event that these callbacks handle.
- * @typedef {Object.<number, EventCallback<TEvent>>} CallbackList
+ * @template TData The type of data that the event messages include.
  */
-export type CallbackList<TEvent> = Record<number, EventCallback<TEvent>>;
+export type CallbackList<TData> = Record<number, EventCallback<TData>>;
 
 /**
  * Manages callback subscribers for a channel.
  *
  * @class Channel
- * @template TEvent The type of event that this channel handles
+ * @template TData The type of event data that this channel handles
  * @property {string} _name - The name of the channel
- * @property {TEvent | undefined} _lastEvent - The last event that was published on the channel
+ * @property {TData | undefined} _lastEvent - The last event that was published on the channel
  * @property {number} _lastId - The last assigned callback ID
- * @property {CallbackList<TEvent>} _callbacks - The callbacks that are subscribed to the channel
+ * @property {CallbackList<TData>} _callbacks - The callbacks that are subscribed to the channel
  *
  * @description
  * The Channel class is responsible for managing subscriptions and publications for a specific event type.
@@ -66,11 +95,11 @@ export type CallbackList<TEvent> = Record<number, EventCallback<TEvent>>;
  * channel.publish('Hello, World!');
  * // Output: Hello, World!
  */
-export class Channel<TEvent> {
-  private _name: string;
-  private _lastEvent: TEvent|undefined;
+export class Channel<TData> {
+  private readonly _name: string;
+  private _lastEvent: TData|undefined;
   private _lastId = 0;
-  private _callbacks: CallbackList<TEvent> = {};
+  private _callbacks: CallbackList<TData> = {};
 
   /**
    * Creates a new Channel instance.
@@ -94,18 +123,21 @@ export class Channel<TEvent> {
   /**
    * Subscribes to events on the channel. Each event received will be passed to the callback function.
    *
-   * @param {EventCallback<TEvent>} callback - The function to be called when an event is published on this channel.
+   * @param {EventCallback<TData>} callback - The function to be called when an event is published on this channel.
    * @param {boolean} [replay=false] - If true, immediately calls the callback with the last event, if one exists.
    * @returns {Subscription} An object containing the unsubscribe method and the subscription ID.
    */
-  subscribe(callback: EventCallback<TEvent>, replay = false): Subscription {
+  subscribe(callback: EventCallback<TData>, replay: boolean = false): Subscription {
       const id = this.getNextId();
       const lastEvent = this._lastEvent;
       this._callbacks[id] = callback;
 
       // replay the last event
       if(replay && lastEvent) {
-          callback(lastEvent);
+          callback({
+            channel: this.name,
+            data: lastEvent
+          });
       }
 
       return {
@@ -119,21 +151,23 @@ export class Channel<TEvent> {
   /**
    * Publishes an event to the channel, notifying all subscribers.
    *
-   * @param {TEvent} data - The event data to be published to all subscribers.
+   * @param {TData} data - The event data to be published to all subscribers.
    */
-  publish(data: TEvent) {
-      this._lastEvent = data;
+  publish(data: TData) {
+      this._lastEvent = data ;
       Object.values(this._callbacks).forEach((callback) => {
-          callback(data);
+        callback({
+          channel: this.name,
+          data});
       });
   }
 
   /**
    * Retrieves the last event that was published on the channel.
    *
-   * @returns {TEvent | undefined} The last event that was published on the channel, or undefined if no event has been published.
+   * @returns {TData | undefined} The last event that was published on the channel, or undefined if no event has been published.
    */
-  get lastEvent(): TEvent | undefined {
+  get lastEvent(): TData | undefined {
       return this._lastEvent;
   }
 
@@ -149,9 +183,9 @@ export class Channel<TEvent> {
   /**
    * Retrieves the list of callbacks that are subscribed to the channel.
    *
-   * @returns {CallbackList<TEvent>} An object containing all the callbacks subscribed to the channel, keyed by their subscription IDs.
+   * @returns {CallbackList<TData>} An object containing all the callbacks subscribed to the channel, keyed by their subscription IDs.
    */
-  get callbacks(): CallbackList<TEvent> {
+  get callbacks(): CallbackList<TData> {
       return this._callbacks;
   }
 }
@@ -205,7 +239,7 @@ export class EventHub {
    */
   constructor() {
     // Create the Wildcard Channel
-    this._channels[WildCardName] = new Channel<any>(WildCardName);
+    this._channels[WildCardChannel] = new Channel<any>(WildCardChannel);
   }
 
   /**
@@ -220,15 +254,15 @@ export class EventHub {
   /**
    * Subscribes to all events sent on a specific channel of the event hub.
    *
-   * @template TEvent The type of event that this subscription handles.
+   * @template TData The type of event that this subscription handles.
    * @param {string} channel - The name of the channel to subscribe to.
-   * @param {EventCallback<TEvent>} callback - The function to be called by the EventHub for each event published on this channel.
+   * @param {EventCallback<TData>} callback - The function to be called by the EventHub for each event published on this channel.
    * @param {boolean} [replay=false] - If true, immediately replays the last event sent on this channel (if any).
    * @returns {Subscription} An object containing the unsubscribe method and the subscription ID.
    */
-  subscribe<TEvent>(channel: string, callback: EventCallback<TEvent>, replay: boolean = false): Subscription {
+  subscribe<TData>(channel: string, callback: EventCallback<TData>, replay: boolean = false): Subscription {
       if (!this._channels[channel]) {
-          this._channels[channel] = new Channel<TEvent>(channel);
+          this._channels[channel] = new Channel<TData>(channel);
       }
       return this._channels[channel].subscribe(callback, replay);
   }
@@ -236,18 +270,19 @@ export class EventHub {
   /**
    * Publishes an event to a specific channel on the event hub.
    *
-   * @template TEvent The type of event being published.
+   * @template TData The type of event being published.
    * @param {string} channel - The name of the channel to publish the event to.
-   * @param {TEvent} data - The event data to be sent to each subscriber of the channel.
+   * @param {TData} data - The event data to be sent to each subscriber of the channel.
    */
-  publish<TEvent>(channel: string, data: TEvent): void {
+  publish<TData>(channel: string, data: TData): void {
       if (!this._channels[channel]) {
-          this._channels[channel] = new Channel<TEvent>(channel);
+          this._channels[channel] = new Channel<TData>(channel);
       }
       this._channels[channel].publish(data);
 
       // also publish to the wildcard channel
-      this._channels[WildCardName].publish(data);
+      this._channels[WildCardChannel].publish(data);
+      this._channels[WildCardChannel].publish(data);
   }
 
   /**
@@ -257,9 +292,9 @@ export class EventHub {
    * @param {string} channel - The name of the channel to retrieve the last event from.
    * @returns {TEvent | undefined} The last event that was published on the channel, or undefined if no event has been published.
    */
-  lastEvent<TEvent>(channel: string): TEvent | undefined {
+   lastEvent<TData>(channel: string): EventMessage<TData> | undefined {
       if (!this._channels[channel]) {
-          this._channels[channel] = new Channel<TEvent>(channel);
+          this._channels[channel] = new Channel<TData>(channel);
       }
       return this._channels[channel].lastEvent;
   }
