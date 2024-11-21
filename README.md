@@ -2,7 +2,7 @@
 
 Effe (pr. e-ff-y) connects your frontend javascript applications to your backend Event Driven Architecture (EDA).
 Effe is a framework-agnostic event hub providing a familiar event bus interface for your front-end components combined 
-with an extensible connector interface to enable events to flow between your backend hosted server components.
+with an extensible connector interface to enable events to flow between your backend hosted server components and the front-end EventHub.
 
 The implementation is a pure EventHub implementation with clear responsibilities.  EventHub has a single purpose - to transmit events to subscribed callbacks for each channel when a message is published.
 A Subscriber may subscribe to ALL messages published on the EventHub by subscribing to the wildcard channel "\*".
@@ -31,3 +31,6 @@ We love the Pub/Sub model and think it simplifies your Front-End to no end.
 - WebSocket Connector also listens to the websocket for messages coming back and for each message will reformat them into a compatible EventHub message.  
 - The WebSocket Connector will publish the reformatted event to the channel identified in the message completing the end to end communication loop.
 
+**Important Note:** Websockets do not implement publish/subscribe patterns, they enable transportation of data from a client to the server using a negotiated Sub-protocol which determines the data which flows between them.
+This is why we have created the IConnector Interface - to enable connections to servers using any kind of transport mechanism you need - like WebSockets - these are a Connector.
+You can implement the connectors any way you like - it's up to you how you connect your EventHubs.
