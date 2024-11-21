@@ -22,7 +22,7 @@ We love the Pub/Sub model and think it simplifies your Front-End to no end.
 
 ## Overview of EventHub Interactions using a WebSocket Connector
 
-![](assets\eventhub-overview.png)
+![](assets/eventhub-overview.png)
 
 - WebUI subscribes to a channel to receive events from the EventHub using a callback function.
 - EventHub calls subscriber callbacks for any channel for each event that is published
