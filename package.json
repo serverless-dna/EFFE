@@ -34,7 +34,7 @@
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-type`script": "^12.1.1",
+    "@rollup/plugin-typescript": "^12.1.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/github": "^11.0.1",
     "@types/ws": "^8.5.13",
@@ -62,6 +62,7 @@
     "@types/jest": "^29.5.14"
   },
   "dependencies": {
+    "@gomomento/sdk-web": "^1.101.2",
     "isomorphic-ws": "^5.0.0",
     "ws": "^8.18.0"
   }
