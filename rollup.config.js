@@ -33,7 +33,7 @@ export default [
     input: 'src/index.ts',
     external: [
       ...Object.keys(pkg.dependencies || {}).map(startsWithRegExp),
-      ...Object.keys(pkg.peerDependencies || {}).map(startsWithRegExp),
+      // ...Object.keys(pkg.peerDependencies || {}).map(startsWithRegExp),
     ],
     plugins: [commonjs(), typescript()],
     output: [
