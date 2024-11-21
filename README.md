@@ -14,6 +14,11 @@ events to the EventHub when data is received (if the connector is a bi-direction
 
 > We like to think of this setup as EventBridge for your FrontEnd Web Apps.
 
+This implementation maintains a clear separation of responsibilities.  Connectors are simply Pub/Sub participants who have a special job - to connect the EventHub to an external server or source.
+This could be anything at all - WebSockets, Momento Topics, an API, AWS EventBridge, Kafka Topics, event other EventHubs! - anywhere you need to connect your events.  You can create multiple connectors to handle events from your EventHub in many different ways.
+We love the Pub/Sub model and think it simplifies your Front-End to no end.  
+
+> _GO wild - connect your events to everything!_
 
 ## Overview of EventHub Interactions using a WebSocket Connector
 
@@ -25,7 +30,4 @@ events to the EventHub when data is received (if the connector is a bi-direction
 - WebSocket connector also connects to a websocket server and is responsible for reformatting the EventHub events to the correct format for the WebSocket protocol being used.
 - WebSocket Connector also listens to the websocket for messages coming back and for each message will reformat them into a compatible EventHub message.  
 - The WebSocket Connector will publish the reformatted event to the channel identified in the message completing the end to end communication loop.
-
-A connector is a small piece of software you can write to integrate EventHub messages anywhere at all.  You can create multiple connectors to handle events from your EventHub in many different ways.
-We love the Pub/Sub model and think it simplifies your Front-End to no end.  GO wild - connect your events to everything!
 
