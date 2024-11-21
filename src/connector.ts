@@ -1,4 +1,4 @@
-import {EventHub} from "./event-hub";
+import {EventHub, Subscription} from "./event-hub";
 
 export interface IConnector {
   eventHubs: EventHub[];
@@ -22,6 +22,9 @@ export interface IConnector {
  * @class
  */
 export abstract class BaseConnector implements IConnector {
+  protected eventHubSubscriptions: Subscription[] = [];
+  protected channels: string[] = [];
+
   eventHubs : EventHub[] = [];
   name: string = 'BaseConnector';
 
@@ -32,7 +35,7 @@ export abstract class BaseConnector implements IConnector {
    */
   addEventHub(hub: EventHub): IConnector {
     this.eventHubs.push(hub);
-    this.initialiseEventHub(hub);
+    this.initialiseEventHub(hub, this.channels);
 
     return this;
   }
