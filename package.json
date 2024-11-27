@@ -9,14 +9,16 @@
   "type": "module",
   "scripts": {
     "prebuild": "rimraf dist/* && npm run lint",
-    "build": "npx rollup -c",
-    "test": "npx jest",
-    "lint": "npx eslint --fix",
+    "build": "rollup -c",
+    "test": "jest",
+    "lint": "eslint",
+    "test:ci": "jest --ci",
+    "lint:fix": "eslint --fix",
     "postversion": "npm run build",
     "release": "semantic-release"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.0.0"
   },
   "repository": {
     "type": "git",
