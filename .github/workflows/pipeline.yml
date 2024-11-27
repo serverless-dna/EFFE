@@ -3,8 +3,14 @@ name: Stage Build
 on:
   push:
     branches:
-      - main
-      - "feature/*"
+      - "*"
+    paths-ignore:
+      - '*.md'
+  pull_request:
+    branches:
+      - "*"
+    paths-ignore:
+      - '*.md'
 
 jobs:
   StageBuild:
